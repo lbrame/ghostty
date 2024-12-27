@@ -100,40 +100,10 @@ pub fn init(core_app: *CoreApp, opts: Options) !App {
         c.gtk_get_micro_version(),
     });
 
-    // Disabling Vulkan can improve startup times by hundreds of
-    // milliseconds on some systems. We don't use Vulkan so we can just
-    // disable it.
-    if (version.atLeast(4, 16, 0)) {
-        // From gtk 4.16, GDK_DEBUG is split into GDK_DEBUG and GDK_DISABLE.
-        // For the remainder of "why" see the 4.14 comment below.
-        _ = internal_os.setenv("GDK_DISABLE", "gles-api,vulkan");
-        _ = internal_os.setenv("GDK_DEBUG", "opengl");
-    } else if (version.atLeast(4, 14, 0)) {
-        // We need to export GDK_DEBUG to run on Wayland after GTK 4.14.
-        // Older versions of GTK do not support these values so it is safe
-        // to always set this. Forwards versions are uncertain so we'll have to
-        // reassess...
-        //
-        // Upstream issue: https://gitlab.gnome.org/GNOME/gtk/-/issues/6589
-        //
-        // Specific details about values:
-        //   - "opengl" - output OpenGL debug information
-        //   - "gl-disable-gles" - disable GLES, Ghostty can't use GLES
-        //   - "vulkan-disable" - disable Vulkan, Ghostty can't use Vulkan
-        //     and initializing a Vulkan context was causing a longer delay
-        //     on some systems.
-        _ = internal_os.setenv("GDK_DEBUG", "opengl,gl-disable-gles,vulkan-disable");
-    } else {
-        // Versions prior to 4.14 are a bit of an unknown for Ghostty. It
-        // is an environment that isn't tested well and we don't have a
-        // good understanding of what we may need to do.
-        _ = internal_os.setenv("GDK_DEBUG", "vulkan-disable");
-    }
-
     if (version.atLeast(4, 14, 0)) {
         // We need to export GSK_RENDERER to opengl because GTK uses ngl by
         // default after 4.14
-        _ = internal_os.setenv("GSK_RENDERER", "opengl");
+        _ = internal_os.setenv("GSK_RENDERER", "ngl");
     }
 
     // Load our configuration
